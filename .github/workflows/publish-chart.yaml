@@ -27,5 +27,6 @@ jobs:
           charts_repo_url: "https://krolval.github.io/helm-charts/"
           charts_dir: "./deploy/helm"
           version: ${{ env.RELEASE_VERSION }}
+          config: cr.yaml
         env:
           CR_TOKEN: "${{ secrets.CR_TOKEN }}"

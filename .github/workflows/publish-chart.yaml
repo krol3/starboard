@@ -1,32 +1,35 @@
+name: Publish Chart Helm
+
 on:
-  release:
-    types: [published]
+  pull_request:
   workflow_dispatch:
-name: "Publish Helm Charts"
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  lint-test:
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-      - name: Install Helm
-        uses: azure/setup-helm@v1
+      # Python is required because `ct lint` runs Yamale (https://github.com/23andMe/Yamale) and
+      # yamllint (https://github.com/adrienverge/yamllint) which require Python
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          version: v3.4.0
+          python-version: 3.7
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.0.0
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.0.1
         with:
-          charts_repo_url: "https://krolval.github.io/helm-charts/"
-          charts_dir: "./deploy"
-          version: ${{ env.RELEASE_VERSION }}
-          config: cr.yaml
-        env:
-          CR_TOKEN: "${{ secrets.CR_TOKEN }}"
+          version: v3.3.0
+
+      - name: Run chart-testing lint-install
+        run: ct lint-and-install --chart-dirs deploy --validate-maintainers=false
+
+      # - name: Create kind cluster
+      #   uses: helm/kind-action@v1.1.0
+
+      # - name: Run chart-testing install
+      #   run: ct install --chart-dirs deploy
+

@@ -11,7 +11,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
       # Python is required because `ct lint` runs Yamale (https://github.com/23andMe/Yamale) and
       # yamllint (https://github.com/adrienverge/yamllint) which require Python
       - name: Set up Python
@@ -21,14 +20,12 @@ jobs:
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.0.1
-        with:
-          version: v3.3.0
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.1.0
 
       - name: Run chart-testing lint-install
         run: ct lint-and-install --chart-dirs deploy --validate-maintainers=false
-
-      # - name: Create kind cluster
-      #   uses: helm/kind-action@v1.1.0
 
       # - name: Run chart-testing install
       #   run: ct install --chart-dirs deploy

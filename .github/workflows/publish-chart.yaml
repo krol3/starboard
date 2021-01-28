@@ -27,6 +27,25 @@ jobs:
       - name: Run chart-testing lint-install
         run: ct lint-and-install --chart-dirs deploy --validate-maintainers=false
 
-      # - name: Run chart-testing install
-      #   run: ct install --chart-dirs deploy
+  release:
+    runs-on: ubuntu-20.04
+    needs:
+      - lint-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.5.0
+      - name: Install chart-releaser
+        run: |
+          wget https://github.com/helm/chart-releaser/releases/download/v1.1.1/chart-releaser_1.1.1_linux_amd64.tar.gz
+          tar xzvf chart-releaser_1.1.1_linux_amd64.tar.gz cr
+      - name: Package Upload helm chart
+        run: |
+          helm package deploy/helm
+          ./cr upload -o krolval -r helm-charts -p . --token ${{ secrets.HELM_REP_TOKEN }}
 

@@ -1,5 +1,4 @@
 name: Publish Chart Helm
-
 on:
   pull_request:
   workflow_dispatch:
@@ -45,7 +44,18 @@ jobs:
           wget https://github.com/helm/chart-releaser/releases/download/v1.1.1/chart-releaser_1.1.1_linux_amd64.tar.gz
           tar xzvf chart-releaser_1.1.1_linux_amd64.tar.gz cr
       - name: Package Upload helm chart
+        continue-on-error: true
         run: |
-          helm package deploy/helm
-          ./cr upload -o krolval -r helm-charts -p . --token ${{ secrets.HELM_REP_TOKEN }}
-
+          ./cr package deploy/helm
+          ./cr upload -o krolval -r helm-charts -p . --token ${{ secrets.HELM_REP_TOKEN }} -p .cr-release-packages
+          ./cr index -o krolval -r helm-charts -c https://krolval.github.io/helm-charts/ -i index.yaml
+          mkdir output && mv index.yaml output
+      - name: Pushes to another repository
+        uses: cpina/github-action-push-to-another-repository@master
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.HELM_REP_TOKEN }}
+        with:
+          source-directory: 'output'
+          destination-github-username: 'krolval'
+          destination-repository-name: 'helm-charts'
+          user-email: ci@aquasec.com

@@ -50,12 +50,29 @@ jobs:
           ./cr upload -o krolval -r helm-charts -p . --token ${{ secrets.HELM_REP_TOKEN }} -p .cr-release-packages
           ./cr index -o krolval -r helm-charts -c https://krolval.github.io/helm-charts/ -i index.yaml
           mkdir output && mv index.yaml output
-      - name: Pushes to another repository
-        uses: cpina/github-action-push-to-another-repository@master
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.HELM_REP_TOKEN }}
+      - name: Index helm chart
+        run: |
+          ./cr index -o krolval -r helm-charts -c https://krolval.github.io/helm-charts/ -i index.yaml
+          mkdir output && mv index.yaml output
+          ls output
+      # - name: Pushes to another repository
+      #   uses: cpina/github-action-push-to-another-repository@master
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.HELM_REP_TOKEN }}
+      #   with:
+      #     source-directory: 'output'
+      #     destination-github-username: 'krolval'
+      #     destination-repository-name: 'helm-charts'
+      #     user-email: ci@aquasec.com
+      #     target-branch: gh-pages
+      - name: Copy index
+        uses: andstor/copycat-action@v3
         with:
-          source-directory: 'output'
-          destination-github-username: 'krolval'
-          destination-repository-name: 'helm-charts'
-          user-email: ci@aquasec.com
+          personal_token: ${{ secrets.HELM_REP_TOKEN }}
+          src_path: output/
+          dst_path: /.
+          dst_owner: krolval
+          dst_repo_name: helm-charts
+          src_branch: main
+          dst_branch: gh-pages
+          clean: false

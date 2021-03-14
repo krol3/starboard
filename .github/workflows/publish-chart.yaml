@@ -2,12 +2,12 @@ name: Publish Chart Helm
 on:
   push:
     branches: [main]
-    paths:
-      - 'deploy/helm/**'
+    # paths:
+    #   - 'deploy/helm/**'
   workflow_dispatch:
 env:
   HELM_REP: helm-charts
-  GH_OWNER: aquasecurity
+  GH_OWNER: krolval
   CHART_DIR: deploy/helm
 jobs:
   release:

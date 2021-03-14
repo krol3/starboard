@@ -2,12 +2,12 @@ name: Publish Chart Helm
 on:
   push:
     branches: [main]
-    paths:
-      - 'deploy/helm/**'
+    # paths:
+    #   - 'deploy/helm/**'
   workflow_dispatch:
 env:
   HELM_REP: helm-charts
-  GH_OWNER: aquasecurity
+  GH_OWNER: krolval
   CHART_DIR: deploy/helm
 jobs:
   release:
@@ -32,18 +32,18 @@ jobs:
         # Failed with upload the same version: https://github.com/helm/chart-releaser/issues/101
         continue-on-error: true
         run: |
-          ../cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.ORG_GITHUB_TOKEN }} -p .cr-release-packages
+          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.ORG_GITHUB_TOKEN }} -p .cr-release-packages
       - name: Index helm chart
         run: |
-          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}/ -i index.yaml
-      - name: Push index file
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.ORG_GITHUB_TOKEN }}
-        with:
-          source_file: 'index.yaml'
-          destination_repo: '${{ env.GH_OWNER }}/${{ env.HELM_REP }}'
-          destination_folder: '.'
-          destination_branch: 'gh-pages'
-          user_email: aqua-bot@users.noreply.github.com
-          user_name: 'aqua-bot'
+          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}/ -i index.yaml --push
+      # - name: Push index file
+      #   uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.ORG_GITHUB_TOKEN }}
+      #   with:
+      #     source_file: 'index.yaml'
+      #     destination_repo: '${{ env.GH_OWNER }}/${{ env.HELM_REP }}'
+      #     destination_folder: '.'
+      #     destination_branch: 'gh-pages'
+      #     user_email: aqua-bot@users.noreply.github.com
+      #     user_name: 'aqua-bot'

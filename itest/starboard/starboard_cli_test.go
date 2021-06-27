@@ -1007,10 +1007,33 @@ var _ = Describe("Starboard CLI", func() {
 
 	Describe("Command scan ciskubebenchreports", func() {
 
-		It("should create CISKubeBenchReports", func() {
+		It("should create all CISKubeBenchReport", func() {
 			err := cmd.Run(versionInfo, []string{
 				"starboard",
 				"scan", "ciskubebenchreports",
+				"-v", starboardCLILogLevel,
+			}, GinkgoWriter, GinkgoWriter)
+			Expect(err).ToNot(HaveOccurred())
+
+			var nodeList corev1.NodeList
+			err = kubeClient.List(context.TODO(), &nodeList)
+			Expect(err).ToNot(HaveOccurred())
+			countCISKubeBenchReport := 0
+
+			for _, node := range nodeList.Items {
+				var report v1alpha1.CISKubeBenchReport
+				kubeClient.Get(context.TODO(), types.NamespacedName{Name: node.Name}, &report)
+				if &report != nil {
+					countCISKubeBenchReport++
+				}
+			}
+			Expect(3).To(Equal(countCISKubeBenchReport))
+		})
+
+		It("should create specific CISKubeBenchReports", func() {
+			err := cmd.Run(versionInfo, []string{
+				"starboard",
+				"scan", "ciskubebenchreports", "kind-control-plane",
 				"-v", starboardCLILogLevel,
 			}, GinkgoWriter, GinkgoWriter)
 			Expect(err).ToNot(HaveOccurred())
@@ -1022,32 +1045,36 @@ var _ = Describe("Starboard CLI", func() {
 			for _, node := range nodeList.Items {
 				var report v1alpha1.CISKubeBenchReport
 				err := kubeClient.Get(context.TODO(), types.NamespacedName{Name: node.Name}, &report)
-				Expect(err).ToNot(HaveOccurred(), "Expected CISKubeBenchReport for node %s but not found", node.Name)
 
-				// Note: The MatchFieldsMatcher expects struct, not pointer.
-				Expect(report).To(MatchFields(IgnoreExtras, Fields{
-					"ObjectMeta": MatchFields(IgnoreExtras, Fields{
-						"Labels": MatchAllKeys(Keys{
-							starboard.LabelResourceKind: Equal("Node"),
-							starboard.LabelResourceName: Equal(node.Name),
+				if node.Name == "kind-control-plane" {
+					// Note: The MatchFieldsMatcher expects struct, not pointer.
+					Expect(report).To(MatchFields(IgnoreExtras, Fields{
+						"ObjectMeta": MatchFields(IgnoreExtras, Fields{
+							"Labels": MatchAllKeys(Keys{
+								starboard.LabelResourceKind: Equal("Node"),
+								starboard.LabelResourceName: Equal(node.Name),
+							}),
+							"OwnerReferences": ConsistOf(metav1.OwnerReference{
+								APIVersion:         "v1",
+								Kind:               "Node",
+								Name:               node.Name,
+								UID:                node.UID,
+								Controller:         pointer.BoolPtr(true),
+								BlockOwnerDeletion: pointer.BoolPtr(false),
+							}),
 						}),
-						"OwnerReferences": ConsistOf(metav1.OwnerReference{
-							APIVersion:         "v1",
-							Kind:               "Node",
-							Name:               node.Name,
-							UID:                node.UID,
-							Controller:         pointer.BoolPtr(true),
-							BlockOwnerDeletion: pointer.BoolPtr(false),
+						"Report": MatchFields(IgnoreExtras, Fields{
+							"Scanner": Equal(v1alpha1.Scanner{
+								Name:    "kube-bench",
+								Vendor:  "Aqua Security",
+								Version: "0.6.3",
+							}),
 						}),
-					}),
-					"Report": MatchFields(IgnoreExtras, Fields{
-						"Scanner": Equal(v1alpha1.Scanner{
-							Name:    "kube-bench",
-							Vendor:  "Aqua Security",
-							Version: "0.6.3",
-						}),
-					}),
-				}))
+					}))
+				} else {
+					// Expected NOT to find CISKubeBenchReport
+					Expect(err).To(HaveOccurred(), "Expected NOT to find CISKubeBenchReport for node %s but found", node.Name)
+				}
 			}
 		})
 	})
@@ -1095,6 +1122,7 @@ var _ = Describe("Starboard CLI", func() {
 			"cleanup",
 			"-v", starboardCLILogLevel,
 		}, GinkgoWriter, GinkgoWriter)
+		time.Sleep(4 * time.Second)
 		Expect(err).ToNot(HaveOccurred())
 	})
 

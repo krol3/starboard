@@ -6,7 +6,7 @@ import (
 
 	"github.com/aquasecurity/starboard/pkg/plugin"
 	"github.com/aquasecurity/starboard/pkg/starboard"
-	"github.com/aquasecurity/starboard/pkg/vulnerabilityreport"
+	policyreport "github.com/krol3/starboard/pkg/policyreport"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
@@ -108,12 +108,12 @@ func ScanPolicyReports(buildInfo starboard.BuildInfo, cf *genericclioptions.Conf
 		if err != nil {
 			return err
 		}
-		scanner := vulnerabilityreport.NewScanner(kubeClientset, kubeClient, plugin, pluginContext, config, opts)
+		scanner := policyreport.NewScanner(kubeClientset, kubeClient, plugin, pluginContext, config, opts)
 		reports, err := scanner.Scan(ctx, workload)
 		if err != nil {
 			return err
 		}
-		writer := vulnerabilityreport.NewReadWriter(kubeClient)
+		writer := policyreport.NewReadWriter(kubeClient)
 		return writer.Write(ctx, reports)
 	}
 }

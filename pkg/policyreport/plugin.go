@@ -1,4 +1,4 @@
-package vulnerabilityreport
+package policyreport
 
 import (
 	"io"

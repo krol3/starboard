@@ -1,4 +1,4 @@
-package vulnerabilityreport
+package policyreport
 
 import (
 	"fmt"
@@ -7,7 +7,8 @@ import (
 	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/aquasecurity/starboard/pkg/kube"
 	"github.com/aquasecurity/starboard/pkg/starboard"
-	//"github.com/krol3/starboard/pkg/apis/wgpolicy.io/v1alpha2"
+
+	"github.com/krol3/starboard/pkg/apis/wgpolicy.io/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"

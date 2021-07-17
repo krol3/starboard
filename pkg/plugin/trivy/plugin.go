@@ -13,6 +13,8 @@ import (
 	"github.com/aquasecurity/starboard/pkg/starboard"
 	"github.com/aquasecurity/starboard/pkg/vulnerabilityreport"
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/aquasecurity/starboard/pkg/apis/wgpolicyk8s.io/v1alpha2"
+	"github.com/aquasecurity/starboard/pkg/policyreport"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,6 +128,13 @@ func (c Config) GetInsecureRegistries() map[string]bool {
 // The ClientServer mode is usually more performant, however it
 // requires a Trivy server accessible at the configurable Config.GetServerURL.
 func NewPlugin(clock ext.Clock, idGenerator ext.IDGenerator) vulnerabilityreport.Plugin {
+	return &plugin{
+		clock:       clock,
+		idGenerator: idGenerator,
+	}
+}
+
+func NewPluginPolicy(clock ext.Clock, idGenerator ext.IDGenerator) policyreport.Plugin {
 	return &plugin{
 		clock:       clock,
 		idGenerator: idGenerator,
@@ -824,6 +833,65 @@ func (p *plugin) ParseVulnerabilityReportData(ctx starboard.PluginContext, image
 		Artifact:        artifact,
 		Summary:         p.toSummary(vulnerabilities),
 		Vulnerabilities: vulnerabilities,
+	}, nil
+}
+
+func (p *plugin) ParsePolicyReportData(ctx starboard.PluginContext, imageRef string, logsReader io.ReadCloser) (v1alpha2.PolicyReport, error) {
+	// config, err := p.newConfigFrom(ctx)
+	// if err != nil {
+	// 	return v1alpha2.PolicyReport{}, err
+	// }
+
+	var reports []ScanReport
+	err := json.NewDecoder(logsReader).Decode(&reports)
+	if err != nil {
+		return v1alpha2.PolicyReport{}, err
+	}
+	//vulnerabilities := make([]v1alpha2.PolicyReport, 0)
+
+	//FIXME
+	// for _, report := range reports {
+	// 	for _, sr := range report.Vulnerabilities {
+	// 		vulnerabilities = append(vulnerabilities, v1alpha2.PolicyReport.Vulnerability{
+	// 			VulnerabilityID:  sr.VulnerabilityID,
+	// 			Resource:         sr.PkgName,
+	// 			InstalledVersion: sr.InstalledVersion,
+	// 			FixedVersion:     sr.FixedVersion,
+	// 			Severity:         sr.Severity,
+	// 			Title:            sr.Title,
+	// 			PrimaryLink:      sr.PrimaryURL,
+	// 			Links:            []string{},
+	// 			Score:            GetScoreFromCVSS(sr.Cvss),
+	// 		})
+	// 	}
+	// }
+
+	// registry, artifact, err := p.parseImageRef(imageRef)
+	// if err != nil {
+	// 	return v1alpha2.PolicyReport{}, err
+	// }
+
+	// trivyImageRef, err := config.GetImageRef()
+	// if err != nil {
+	// 	return v1alpha2.PolicyReport{}, err
+	// }
+
+	// version, err := starboard.GetVersionFromImageRef(trivyImageRef)
+	// if err != nil {
+	// 	return v1alpha2.PolicyReport{}, err
+	// }
+
+	return v1alpha2.PolicyReport{
+		// UpdateTimestamp: metav1.NewTime(p.clock.Now()),
+		// Scanner: v1alpha1.Scanner{
+		// 	Name:    "Trivy",
+		// 	Vendor:  "Aqua Security",
+		// 	Version: version,
+		// },
+		// Registry:        registry,
+		// Artifact:        artifact,
+		// Summary:         p.toSummary(vulnerabilities),
+		// Vulnerabilities: vulnerabilities,
 	}, nil
 }
 

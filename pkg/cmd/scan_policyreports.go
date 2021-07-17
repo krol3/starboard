@@ -54,7 +54,7 @@ func NewScanPolicyReportsCmd(buildInfo starboard.BuildInfo, cf *genericclioption
 
   # Scan a cronjob with the specified name and the specified scan job timeout
   %[1]s scan vulnerabilityreports cj/my-cronjob --scan-job-timeout 2m`, buildInfo.Executable),
-		RunE: ScanVulnerabilityReports(buildInfo, cf),
+		RunE: ScanPolicyReports(buildInfo, cf),
 	}
 
 	registerScannerOpts(cmd)
@@ -104,7 +104,7 @@ func ScanPolicyReports(buildInfo starboard.BuildInfo, cf *genericclioptions.Conf
 			WithServiceAccountName(starboard.ServiceAccountName).
 			WithConfig(config).
 			WithClient(kubeClient).
-			GetVulnerabilityPlugin()
+			GetPolicyPlugin()
 		if err != nil {
 			return err
 		}

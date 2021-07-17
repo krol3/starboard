@@ -51,6 +51,7 @@ const (
 )
 
 const (
+	keyPolicyReportsScanner        = "policyReports.scanner"
 	keyVulnerabilityReportsScanner = "vulnerabilityReports.scanner"
 	keyConfigAuditReportsScanner   = "configAuditReports.scanner"
 )
@@ -69,6 +70,7 @@ type ConfigManager interface {
 // GetDefaultConfig returns the default configuration settings.
 func GetDefaultConfig() ConfigData {
 	return map[string]string{
+		keyPolicyReportsScanner:        string(Trivy),
 		keyVulnerabilityReportsScanner: string(Trivy),
 		keyConfigAuditReportsScanner:   string(Polaris),
 
@@ -104,6 +106,24 @@ func (c ConfigData) GetVulnerabilityReportsScanner() (Scanner, error) {
 
 	return "", fmt.Errorf("invalid value (%s) of %s; allowed values (%s, %s)",
 		value, keyVulnerabilityReportsScanner, Trivy, Aqua)
+}
+
+func (c ConfigData) GetPolicyReportsScanner() (Scanner, error) {
+	var ok bool
+	var value string
+	if value, ok = c[keyPolicyReportsScanner]; !ok {
+		return "", fmt.Errorf("property %s not set", keyPolicyReportsScanner)
+	}
+
+	switch Scanner(value) {
+	case Trivy:
+		return Trivy, nil
+	case Aqua:
+		return Aqua, nil
+	}
+
+	return "", fmt.Errorf("invalid value (%s) of %s; allowed values (%s, %s)",
+		value, keyPolicyReportsScanner, Trivy, Aqua)
 }
 
 func (c ConfigData) GetConfigAuditReportsScanner() (Scanner, error) {

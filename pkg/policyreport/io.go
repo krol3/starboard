@@ -1,10 +1,10 @@
-package vulnerabilityreport
+package policyreport
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/aquasecurity/starboard/pkg/apis/wgpolicyk8s.io/v1alpha2"
 	"github.com/aquasecurity/starboard/pkg/kube"
 	"github.com/aquasecurity/starboard/pkg/starboard"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -17,7 +17,7 @@ import (
 // Write creates or updates the given slice of v1alpha1.VulnerabilityReport
 // instances.
 type Writer interface {
-	Write(context.Context, []v1alpha1.VulnerabilityReport) error
+	Write(context.Context, []v1alpha2.PolicyReport) error
 }
 
 // Reader is the interface that wraps methods for finding v1alpha1.VulnerabilityReport objects.
@@ -30,8 +30,8 @@ type Writer interface {
 // For example, if the given owner is a Deployment, but reports are owned by the
 // active ReplicaSet (current revision) this method will return the reports.
 type Reader interface {
-	FindByOwner(context.Context, kube.Object) ([]v1alpha1.VulnerabilityReport, error)
-	FindByOwnerInHierarchy(ctx context.Context, object kube.Object) ([]v1alpha1.VulnerabilityReport, error)
+	FindByOwner(context.Context, kube.Object) ([]v1alpha2.PolicyReport, error)
+	FindByOwnerInHierarchy(ctx context.Context, object kube.Object) ([]v1alpha2.PolicyReport, error)
 }
 
 type ReadWriter interface {
@@ -52,7 +52,7 @@ func NewReadWriter(client client.Client) ReadWriter {
 	}
 }
 
-func (r *readWriter) Write(ctx context.Context, reports []v1alpha1.VulnerabilityReport) error {
+func (r *readWriter) Write(ctx context.Context, reports []v1alpha2.PolicyReport) error {
 	for _, report := range reports {
 		err := r.createOrUpdate(ctx, report)
 		if err != nil {
@@ -62,8 +62,8 @@ func (r *readWriter) Write(ctx context.Context, reports []v1alpha1.Vulnerability
 	return nil
 }
 
-func (r *readWriter) createOrUpdate(ctx context.Context, report v1alpha1.VulnerabilityReport) error {
-	var existing v1alpha1.VulnerabilityReport
+func (r *readWriter) createOrUpdate(ctx context.Context, report v1alpha2.PolicyReport) error {
+	var existing v1alpha2.PolicyReport
 	err := r.Get(ctx, types.NamespacedName{
 		Name:      report.Name,
 		Namespace: report.Namespace,
@@ -72,7 +72,7 @@ func (r *readWriter) createOrUpdate(ctx context.Context, report v1alpha1.Vulnera
 	if err == nil {
 		copied := existing.DeepCopy()
 		copied.Labels = report.Labels
-		copied.Report = report.Report
+		//FIXME copied.Report = report.Report
 
 		return r.Update(ctx, copied)
 	}
@@ -84,8 +84,8 @@ func (r *readWriter) createOrUpdate(ctx context.Context, report v1alpha1.Vulnera
 	return err
 }
 
-func (r *readWriter) FindByOwner(ctx context.Context, owner kube.Object) ([]v1alpha1.VulnerabilityReport, error) {
-	var list v1alpha1.VulnerabilityReportList
+func (r *readWriter) FindByOwner(ctx context.Context, owner kube.Object) ([]v1alpha2.PolicyReport, error) {
+	var list v1alpha2.PolicyReportList
 
 	err := r.List(ctx, &list, client.MatchingLabels{
 		starboard.LabelResourceKind:      string(owner.Kind),
@@ -99,7 +99,7 @@ func (r *readWriter) FindByOwner(ctx context.Context, owner kube.Object) ([]v1al
 	return list.DeepCopy().Items, nil
 }
 
-func (r *readWriter) FindByOwnerInHierarchy(ctx context.Context, owner kube.Object) ([]v1alpha1.VulnerabilityReport, error) {
+func (r *readWriter) FindByOwnerInHierarchy(ctx context.Context, owner kube.Object) ([]v1alpha2.PolicyReport, error) {
 	reports, err := r.FindByOwner(ctx, owner)
 	if err != nil {
 		return nil, err

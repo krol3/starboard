@@ -1,13 +1,12 @@
-package vulnerabilityreport
+package policyreport
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/aquasecurity/starboard/pkg/apis/wgpolicyk8s.io/v1alpha2"
 	"github.com/aquasecurity/starboard/pkg/kube"
 	"github.com/aquasecurity/starboard/pkg/starboard"
-	//"github.com/krol3/starboard/pkg/apis/wgpolicy.io/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
@@ -52,7 +51,7 @@ func (b *ReportBuilder) PodSpecHash(hash string) *ReportBuilder {
 	return b
 }
 
-func (b *ReportBuilder) Data(data v1alpha1.VulnerabilityReportData) *ReportBuilder {
+func (b *ReportBuilder) Data(data v1alpha2.PolicyReport) *ReportBuilder {
 	b.data = data
 	return b
 }
@@ -66,10 +65,10 @@ func (b *ReportBuilder) reportName() (string, error) {
 		b.owner.GetName(), b.container), nil
 }
 
-func (b *ReportBuilder) Get() (v1alpha1.VulnerabilityReport, error) {
+func (b *ReportBuilder) Get() (v1alpha2.PolicyReport, error) {
 	kind, err := kube.KindForObject(b.owner, b.scheme)
 	if err != nil {
-		return v1alpha1.VulnerabilityReport{}, fmt.Errorf("getting kind for object: %w", err)
+		return v1alpha2.PolicyReport{}, fmt.Errorf("getting kind for object: %w", err)
 	}
 
 	labels := map[string]string{
@@ -94,7 +93,7 @@ func (b *ReportBuilder) Get() (v1alpha1.VulnerabilityReport, error) {
 			Namespace: b.owner.GetNamespace(),
 			Labels:    labels,
 		},
-		Report: b.data,
+		//FIXME Summary: b.data,
 	}
 	err = controllerutil.SetControllerReference(b.owner, &report, b.scheme)
 	if err != nil {

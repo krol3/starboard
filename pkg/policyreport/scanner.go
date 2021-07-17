@@ -1,4 +1,4 @@
-package vulnerabilityreport
+package policyreport
 
 import (
 	"context"
@@ -8,7 +8,8 @@ import (
 	"github.com/aquasecurity/starboard/pkg/kube"
 	"github.com/aquasecurity/starboard/pkg/runner"
 	"github.com/aquasecurity/starboard/pkg/starboard"
-	//"github.com/krol3/starboard/pkg/apis/wgpolicyk8s.io/v1alpha2"
+
+	"github.com/aquasecurity/starboard/pkg/apis/wgpolicyk8s.io/v1alpha2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +37,7 @@ type Scanner struct {
 // NewScanner constructs a new static vulnerability Scanner with the specified
 // Plugin that knows how to perform the actual scanning,
 // which is performed by running a Kubernetes job, and knows how to convert logs
-// to instances of v1alpha2.PolicyReport.
+// to instances of v1alpha1.VulnerabilityReport.
 func NewScanner(
 	clientset kubernetes.Interface,
 	client client.Client,
@@ -203,7 +204,7 @@ func (s *Scanner) getVulnerabilityReportsByScanJob(ctx context.Context, job *bat
 		if err != nil {
 			return nil, err
 		}
-		result, err := s.plugin.ParseVulnerabilityReportData(s.pluginContext, containerImage, logsStream)
+		result, err := s.plugin.ParsePolicyReportData(s.pluginContext, containerImage, logsStream)
 		if err != nil {
 			return nil, err
 		}

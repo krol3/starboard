@@ -27,4 +27,4 @@ require (
 	sigs.k8s.io/yaml v1.2.0
 )
 
-replace github.com/aquasecurity/starboard latest => github.com/krol3/starboard 3c1dd5153286c08fd2a01c13e9fe6330288930f0
+replace github.com/aquasecurity/starboard latest => ../starboard

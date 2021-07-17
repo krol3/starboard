@@ -1,11 +1,11 @@
-package vulnerabilityreport
+package policyreport
 
 import (
 	"io"
 
-	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/aquasecurity/starboard/pkg/docker"
 	"github.com/aquasecurity/starboard/pkg/starboard"
+	"github.com/krol3/starboard/pkg/apis/wgpolicyk8s.io/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -29,5 +29,5 @@ type Plugin interface {
 	// ParseVulnerabilityReportData is a callback to parse and convert logs of
 	// the pod controlled by the scan job to v1alpha1.VulnerabilityScanResult.
 	ParseVulnerabilityReportData(ctx starboard.PluginContext, imageRef string, logsReader io.ReadCloser) (
-		v1alpha1.VulnerabilityReportData, error)
+		v1alpha2.PolicyReport, error)
 }

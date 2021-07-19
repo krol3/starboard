@@ -1,8 +1,9 @@
-module github.com/aquasecurity/starboard
+module github.com/krol3/starboard
 
 go 1.16
 
 require (
+	github.com/aquasecurity/starboard v0.10.3
 	github.com/caarlos0/env/v6 v6.4.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-logr/logr v0.4.0
@@ -26,3 +27,5 @@ require (
 	sigs.k8s.io/controller-runtime v0.9.2
 	sigs.k8s.io/yaml v1.2.0
 )
+
+replace github.com/aquasecurity/starboard v0.10.3 => ../starboard

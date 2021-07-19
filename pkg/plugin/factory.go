@@ -11,6 +11,7 @@ import (
 	"github.com/aquasecurity/starboard/pkg/plugin/trivy"
 	"github.com/aquasecurity/starboard/pkg/starboard"
 	"github.com/aquasecurity/starboard/pkg/vulnerabilityreport"
+	"github.com/aquasecurity/starboard/pkg/policyreport"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -75,6 +76,28 @@ func (r *Resolver) GetVulnerabilityPlugin() (vulnerabilityreport.Plugin, starboa
 		return trivy.NewPlugin(ext.NewSystemClock(), ext.NewGoogleUUIDGenerator()), pluginContext, nil
 	case starboard.Aqua:
 		return aqua.NewPlugin(ext.NewGoogleUUIDGenerator(), r.buildInfo), pluginContext, nil
+	}
+	return nil, nil, fmt.Errorf("unsupported vulnerability scanner plugin: %s", scanner)
+}
+
+func (r *Resolver) GetPolicyPlugin() (policyreport.Plugin, starboard.PluginContext, error) {
+	scanner, err := r.config.GetPolicyReportsScanner()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	pluginContext := starboard.NewPluginContext().
+		WithName(string(scanner)).
+		WithNamespace(r.namespace).
+		WithServiceAccountName(r.serviceAccountName).
+		WithClient(r.client).
+		Get()
+
+	switch scanner {
+	case starboard.Trivy:
+		return trivy.NewPluginPolicy(ext.NewSystemClock(), ext.NewGoogleUUIDGenerator()), pluginContext, nil
+		//FIXME case starboard.Aqua:
+		// 	return aqua.NewPlugin(ext.NewGoogleUUIDGenerator(), r.buildInfo), pluginContext, nil
 	}
 	return nil, nil, fmt.Errorf("unsupported vulnerability scanner plugin: %s", scanner)
 }
